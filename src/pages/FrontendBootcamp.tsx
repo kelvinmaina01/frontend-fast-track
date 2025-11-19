@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import LessonCard from "@/components/LessonCard";
-import { Code2, CheckCircle2, MessageCircle } from "lucide-react";
+import { Code2, CheckCircle2, MessageCircle, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import instructorPhoto from "@/assets/instructor-photo.jpg";
 
 interface Lesson {
   id: string;
@@ -180,8 +182,46 @@ const FrontendBootcamp = () => {
         </div>
       </div>
 
-      {/* Lessons */}
+      {/* Instructor Message */}
       <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto mb-12">
+          <Card className="overflow-hidden border-2 border-primary/20">
+            <CardContent className="p-0">
+              <div className="grid md:grid-cols-[300px,1fr] gap-6">
+                <div className="bg-gradient-to-br from-primary/10 to-secondary/10 p-6 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full blur opacity-30"></div>
+                    <img
+                      src={instructorPhoto}
+                      alt="Bootcamp Instructor"
+                      className="relative w-48 h-48 md:w-full md:h-auto rounded-full object-cover border-4 border-background shadow-xl"
+                    />
+                  </div>
+                </div>
+                <div className="p-6 md:p-8 flex flex-col justify-center">
+                  <Quote className="h-8 w-8 text-primary mb-4" />
+                  <blockquote className="space-y-4">
+                    <p className="text-lg md:text-xl font-medium text-foreground leading-relaxed">
+                      "Welcome to your frontend development journey! Remember, every expert was once a beginner. 
+                      The key to success is consistency and practice."
+                    </p>
+                    <p className="text-base text-muted-foreground">
+                      Don't rush through the lessons. Take your time to understand each concept, build the projects, 
+                      and most importantly, make mistakes – that's how you learn best. I'm here to support you every 
+                      step of the way through WhatsApp consultations.
+                    </p>
+                    <div className="pt-4 border-t border-border">
+                      <p className="font-semibold text-foreground">Your Instructor & Mentor</p>
+                      <p className="text-sm text-muted-foreground">Frontend Development Expert</p>
+                    </div>
+                  </blockquote>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Lessons */}
         <div className="max-w-4xl mx-auto space-y-8">
           {lessons.map((lesson, index) => (
             <LessonCard
