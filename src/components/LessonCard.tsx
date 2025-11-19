@@ -26,15 +26,20 @@ interface LessonCardProps {
 const LessonCard = ({ lesson, lessonNumber, isCompleted, onTaskSubmit }: LessonCardProps) => {
   const [formData, setFormData] = useState({
     name: "",
-    submission: "",
-    file: null as File | null,
+    githubLink: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.submission.trim()) {
-      toast.error("Please provide your task submission");
+    if (!formData.githubLink.trim()) {
+      toast.error("Please provide your GitHub repository link");
+      return;
+    }
+
+    // Basic GitHub URL validation
+    if (!formData.githubLink.includes("github.com")) {
+      toast.error("Please provide a valid GitHub repository link");
       return;
     }
 
@@ -44,8 +49,7 @@ const LessonCard = ({ lesson, lessonNumber, isCompleted, onTaskSubmit }: LessonC
       lessonId: lesson.id,
       lessonTitle: lesson.title,
       name: formData.name || "Anonymous",
-      submission: formData.submission,
-      fileName: formData.file?.name,
+      githubLink: formData.githubLink,
       timestamp: new Date().toISOString(),
     });
     localStorage.setItem("submissions", JSON.stringify(submissions));
@@ -54,7 +58,7 @@ const LessonCard = ({ lesson, lessonNumber, isCompleted, onTaskSubmit }: LessonC
     onTaskSubmit(lesson.id);
     
     // Reset form
-    setFormData({ name: "", submission: "", file: null });
+    setFormData({ name: "", githubLink: "" });
   };
 
   return (
@@ -133,40 +137,20 @@ const LessonCard = ({ lesson, lessonNumber, isCompleted, onTaskSubmit }: LessonC
             </div>
 
             <div>
-              <Label htmlFor={`submission-${lesson.id}`}>
-                Task Submission <span className="text-destructive">*</span>
+              <Label htmlFor={`github-${lesson.id}`}>
+                GitHub Repository Link <span className="text-destructive">*</span>
               </Label>
-              <Textarea
-                id={`submission-${lesson.id}`}
-                placeholder="Describe what you built or paste your GitHub repository link..."
-                rows={4}
-                value={formData.submission}
-                onChange={(e) => setFormData({ ...formData, submission: e.target.value })}
+              <Input
+                id={`github-${lesson.id}`}
+                type="url"
+                placeholder="https://github.com/yourusername/your-project"
+                value={formData.githubLink}
+                onChange={(e) => setFormData({ ...formData, githubLink: e.target.value })}
                 required
               />
-            </div>
-
-            <div>
-              <Label htmlFor={`file-${lesson.id}`}>Upload File (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  id={`file-${lesson.id}`}
-                  type="file"
-                  onChange={(e) =>
-                    setFormData({ ...formData, file: e.target.files?.[0] || null })
-                  }
-                />
-                {formData.file && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFormData({ ...formData, file: null })}
-                  >
-                    Clear
-                  </Button>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Upload your completed task to GitHub and paste the repository link here
+              </p>
             </div>
 
             <Button type="submit" className="w-full" disabled={isCompleted}>
