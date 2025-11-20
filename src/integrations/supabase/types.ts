@@ -14,16 +14,157 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bootcamps: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          icon: string | null
+          id: string
+          slug: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          icon?: string | null
+          id?: string
+          slug: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          icon?: string | null
+          id?: string
+          slug?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          bootcamp_id: string
+          created_at: string | null
+          description: string
+          id: string
+          order_index: number
+          resources: Json | null
+          task: string
+          title: string
+          updated_at: string | null
+          video_url: string
+        }
+        Insert: {
+          bootcamp_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+          order_index: number
+          resources?: Json | null
+          task: string
+          title: string
+          updated_at?: string | null
+          video_url: string
+        }
+        Update: {
+          bootcamp_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          order_index?: number
+          resources?: Json | null
+          task?: string
+          title?: string
+          updated_at?: string | null
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_bootcamp_id_fkey"
+            columns: ["bootcamp_id"]
+            isOneToOne: false
+            referencedRelation: "bootcamps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          github_link: string
+          id: string
+          lesson_id: string
+          student_name: string | null
+          submitted_at: string | null
+        }
+        Insert: {
+          github_link: string
+          id?: string
+          lesson_id: string
+          student_name?: string | null
+          submitted_at?: string | null
+        }
+        Update: {
+          github_link?: string
+          id?: string
+          lesson_id?: string
+          student_name?: string | null
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "organizer" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +291,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "organizer", "user"],
+    },
   },
 } as const
