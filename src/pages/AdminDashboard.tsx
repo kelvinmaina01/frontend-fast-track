@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ExternalLink, Plus, LogOut } from "lucide-react";
+import { ExternalLink, LogOut } from "lucide-react";
+import BootcampManagement from "@/components/admin/BootcampManagement";
+import LessonManagement from "@/components/admin/LessonManagement";
 
 interface Submission {
   id: string;
@@ -30,15 +29,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [bootcampForm, setBootcampForm] = useState({
-    title: "",
-    description: "",
-    slug: "",
-    icon: "",
-    status: "coming_soon" as "active" | "coming_soon" | "archived",
-  });
   const [submissionsLoading, setSubmissionsLoading] = useState(true);
-  const [createLoading, setCreateLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -78,32 +69,6 @@ export default function AdminDashboard() {
     setSubmissionsLoading(false);
   };
 
-  const handleCreateBootcamp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreateLoading(true);
-
-    const { error } = await supabase.from("bootcamps").insert([
-      {
-        ...bootcampForm,
-        created_by: user?.id,
-      },
-    ]);
-
-    if (error) {
-      toast.error("Failed to create bootcamp: " + error.message);
-    } else {
-      toast.success("Bootcamp created successfully!");
-      setBootcampForm({
-        title: "",
-        description: "",
-        slug: "",
-        icon: "",
-        status: "coming_soon",
-      });
-    }
-    setCreateLoading(false);
-  };
-
   const handleLogout = async () => {
     await signOut();
     navigate("/");
@@ -140,9 +105,11 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="submissions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-4xl">
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
-            <TabsTrigger value="bootcamps">Create Bootcamp</TabsTrigger>
+            <TabsTrigger value="bootcamps">Bootcamps</TabsTrigger>
+            <TabsTrigger value="lessons">Lessons</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="submissions" className="space-y-4">
@@ -200,81 +167,21 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="bootcamps" className="space-y-4">
+            <BootcampManagement />
+          </TabsContent>
+
+          <TabsContent value="lessons" className="space-y-4">
+            <LessonManagement />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Create New Bootcamp</CardTitle>
-                <CardDescription>Add a new bootcamp to the platform</CardDescription>
+                <CardTitle>Admin Settings</CardTitle>
+                <CardDescription>Manage your admin preferences</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleCreateBootcamp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={bootcampForm.title}
-                      onChange={(e) =>
-                        setBootcampForm({ ...bootcampForm, title: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={bootcampForm.description}
-                      onChange={(e) =>
-                        setBootcampForm({ ...bootcampForm, description: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Slug (URL friendly)</Label>
-                    <Input
-                      id="slug"
-                      value={bootcampForm.slug}
-                      onChange={(e) =>
-                        setBootcampForm({ ...bootcampForm, slug: e.target.value })
-                      }
-                      placeholder="e.g., frontend-bootcamp"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="icon">Icon (lucide-react name)</Label>
-                    <Input
-                      id="icon"
-                      value={bootcampForm.icon}
-                      onChange={(e) =>
-                        setBootcampForm({ ...bootcampForm, icon: e.target.value })
-                      }
-                      placeholder="e.g., Code"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <select
-                      id="status"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
-                      value={bootcampForm.status}
-                      onChange={(e) =>
-                        setBootcampForm({
-                          ...bootcampForm,
-                          status: e.target.value as "active" | "coming_soon" | "archived",
-                        })
-                      }
-                    >
-                      <option value="coming_soon">Coming Soon</option>
-                      <option value="active">Active</option>
-                      <option value="archived">Archived</option>
-                    </select>
-                  </div>
-                  <Button type="submit" disabled={createLoading}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    {createLoading ? "Creating..." : "Create Bootcamp"}
-                  </Button>
-                </form>
+                <p className="text-muted-foreground">Settings coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>
