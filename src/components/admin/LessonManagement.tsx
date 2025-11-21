@@ -8,7 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import SortableLessonRow from "./SortableLessonRow";
 
 interface Bootcamp {
   id: string;
@@ -69,6 +85,13 @@ export default function LessonManagement() {
     }
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const fetchLessons = async (bootcampId: string) => {
     setLoading(true);
     const { data, error } = await supabase
@@ -83,6 +106,41 @@ export default function LessonManagement() {
       setLessons(data || []);
     }
     setLoading(false);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = lessons.findIndex((lesson) => lesson.id === active.id);
+    const newIndex = lessons.findIndex((lesson) => lesson.id === over.id);
+
+    const newLessons = arrayMove(lessons, oldIndex, newIndex);
+    
+    // Update order_index for all lessons
+    const updatedLessons = newLessons.map((lesson, index) => ({
+      ...lesson,
+      order_index: index,
+    }));
+
+    setLessons(updatedLessons);
+
+    // Update in database
+    const updates = updatedLessons.map((lesson) =>
+      supabase
+        .from("lessons")
+        .update({ order_index: lesson.order_index })
+        .eq("id", lesson.id)
+    );
+
+    try {
+      await Promise.all(updates);
+      toast.success("Lessons reordered successfully");
+    } catch (error) {
+      toast.error("Failed to reorder lessons");
+      fetchLessons(selectedBootcamp); // Revert on error
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -306,41 +364,37 @@ export default function LessonManagement() {
                   </CardContent>
                 </Card>
               )}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
-                      <TableCell>{lesson.order_index}</TableCell>
-                      <TableCell className="font-medium">{lesson.title}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(lesson)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(lesson.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead className="w-20">Order</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    <SortableContext
+                      items={lessons.map((lesson) => lesson.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {lessons.map((lesson) => (
+                        <SortableLessonRow
+                          key={lesson.id}
+                          lesson={lesson}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                        />
+                      ))}
+                    </SortableContext>
+                  </TableBody>
+                </Table>
+              </DndContext>
             </div>
           )}
         </div>

@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, Eye } from "lucide-react";
+import BootcampPreview from "./BootcampPreview";
 
 interface Bootcamp {
   id: string;
@@ -24,6 +25,7 @@ export default function BootcampManagement() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBootcamp, setEditingBootcamp] = useState<Bootcamp | null>(null);
+  const [previewBootcampId, setPreviewBootcampId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -244,10 +246,10 @@ export default function BootcampManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Slug</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -269,11 +271,20 @@ export default function BootcampManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPreviewBootcampId(bootcamp.id)}
+                          title="Preview"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(bootcamp)}
+                          title="Edit"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -281,6 +292,7 @@ export default function BootcampManagement() {
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDelete(bootcamp.id)}
+                          title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -293,6 +305,19 @@ export default function BootcampManagement() {
           </div>
         )}
       </CardContent>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewBootcampId} onOpenChange={() => setPreviewBootcampId(null)}>
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bootcamp Preview</DialogTitle>
+            <DialogDescription>
+              This is how students will see this bootcamp
+            </DialogDescription>
+          </DialogHeader>
+          {previewBootcampId && <BootcampPreview bootcampId={previewBootcampId} />}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
