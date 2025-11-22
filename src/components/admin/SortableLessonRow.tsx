@@ -14,9 +14,11 @@ interface SortableLessonRowProps {
   lesson: Lesson;
   onEdit: (lesson: Lesson) => void;
   onDelete: (id: string) => void;
+  isSelected: boolean;
+  onToggleSelect: (id: string) => void;
 }
 
-export default function SortableLessonRow({ lesson, onEdit, onDelete }: SortableLessonRowProps) {
+export default function SortableLessonRow({ lesson, onEdit, onDelete, isSelected, onToggleSelect }: SortableLessonRowProps) {
   const {
     attributes,
     listeners,
@@ -34,6 +36,14 @@ export default function SortableLessonRow({ lesson, onEdit, onDelete }: Sortable
 
   return (
     <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleSelect(lesson.id)}
+          className="rounded border-input"
+        />
+      </TableCell>
       <TableCell>
         <button
           className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"

@@ -66,6 +66,7 @@ export default function LessonManagement() {
   const [loading, setLoading] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     bootcamp_id: "",
     title: "",
@@ -231,6 +232,71 @@ export default function LessonManagement() {
     });
   };
 
+  const toggleLessonSelection = (lessonId: string) => {
+    const newSelection = new Set(selectedLessons);
+    if (newSelection.has(lessonId)) {
+      newSelection.delete(lessonId);
+    } else {
+      newSelection.add(lessonId);
+    }
+    setSelectedLessons(newSelection);
+  };
+
+  const toggleAllLessons = () => {
+    if (selectedLessons.size === lessons.length) {
+      setSelectedLessons(new Set());
+    } else {
+      setSelectedLessons(new Set(lessons.map(l => l.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedLessons.size === 0) return;
+    
+    if (!confirm(`Are you sure you want to delete ${selectedLessons.size} lesson(s)?`)) return;
+
+    const deletePromises = Array.from(selectedLessons).map(id =>
+      supabase.from("lessons").delete().eq("id", id)
+    );
+
+    try {
+      await Promise.all(deletePromises);
+      toast.success(`${selectedLessons.size} lesson(s) deleted successfully`);
+      setSelectedLessons(new Set());
+      fetchLessons(selectedBootcamp);
+    } catch (error) {
+      toast.error("Failed to delete lessons");
+    }
+  };
+
+  const handleBulkDuplicate = async () => {
+    if (selectedLessons.size === 0) return;
+
+    const lessonsToDuplicate = lessons.filter(l => selectedLessons.has(l.id));
+    const maxOrderIndex = Math.max(...lessons.map(l => l.order_index), -1);
+    
+    const duplicates = lessonsToDuplicate.map((lesson, index) => ({
+      bootcamp_id: lesson.bootcamp_id,
+      title: `${lesson.title} (Copy)`,
+      description: lesson.description,
+      video_url: lesson.video_url,
+      task: lesson.task,
+      resources: lesson.resources,
+      order_index: maxOrderIndex + index + 1,
+    }));
+
+    try {
+      const { error } = await supabase.from("lessons").insert(duplicates);
+      if (error) throw error;
+      
+      toast.success(`${selectedLessons.size} lesson(s) duplicated successfully`);
+      setSelectedLessons(new Set());
+      fetchLessons(selectedBootcamp);
+    } catch (error) {
+      toast.error("Failed to duplicate lessons");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this lesson?")) return;
 
@@ -340,21 +406,41 @@ export default function LessonManagement() {
             <CardTitle>Manage Lessons</CardTitle>
             <CardDescription>Create, edit, and delete lessons for bootcamps</CardDescription>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button disabled={!selectedBootcamp}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Lesson
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Lesson</DialogTitle>
-                <DialogDescription>Add a new lesson to the selected bootcamp</DialogDescription>
-              </DialogHeader>
-              <LessonForm />
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-2">
+            {selectedLessons.size > 0 && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleBulkDuplicate}
+                >
+                  Duplicate ({selectedLessons.size})
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={handleBulkDelete}
+                >
+                  Delete ({selectedLessons.size})
+                </Button>
+              </>
+            )}
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={!selectedBootcamp}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Lesson
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Lesson</DialogTitle>
+                  <DialogDescription>Add a new lesson to the selected bootcamp</DialogDescription>
+                </DialogHeader>
+                <LessonForm />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -399,6 +485,14 @@ export default function LessonManagement() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedLessons.size === lessons.length && lessons.length > 0}
+                          onChange={toggleAllLessons}
+                          className="rounded border-input"
+                        />
+                      </TableHead>
                       <TableHead className="w-12"></TableHead>
                       <TableHead className="w-20">Order</TableHead>
                       <TableHead>Title</TableHead>
@@ -416,6 +510,8 @@ export default function LessonManagement() {
                           lesson={lesson}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
+                          isSelected={selectedLessons.has(lesson.id)}
+                          onToggleSelect={toggleLessonSelection}
                         />
                       ))}
                     </SortableContext>
