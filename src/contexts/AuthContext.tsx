@@ -60,7 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .select("role")
       .eq("user_id", userId)
       .in("role", ["admin", "organizer"])
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     setIsAdmin(!!data);
   };

@@ -6,6 +6,15 @@ import { Label } from "@/components/ui/label";
 import { ExternalLink, CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const submissionSchema = z.object({
+  name: z.string().trim().max(100, "Name must be less than 100 characters").optional(),
+  githubLink: z.string().trim().url("Must be a valid URL").refine(
+    (url) => url.includes("github.com"),
+    "Must be a GitHub URL"
+  )
+});
 
 interface Lesson {
   id: string;
@@ -29,8 +38,14 @@ const LessonCard = ({ lesson, lessonNumber, isCompleted, onTaskSubmit }: LessonC
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.githubLink.trim() || !formData.githubLink.includes("github.com")) {
-      toast.error("Please provide a valid GitHub repository link");
+    
+    // Validate input
+    const validation = submissionSchema.safeParse({ 
+      name: formData.name || undefined, 
+      githubLink: formData.githubLink 
+    });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 

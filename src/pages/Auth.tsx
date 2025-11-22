@@ -9,6 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import { useEffect } from "react";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100)
+});
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,6 +32,14 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = authSchema.safeParse({ email: email.trim(), password });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
