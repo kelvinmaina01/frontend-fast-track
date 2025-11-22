@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ExternalLink, LogOut } from "lucide-react";
 import BootcampManagement from "@/components/admin/BootcampManagement";
 import LessonManagement from "@/components/admin/LessonManagement";
+import DashboardOverview from "@/components/admin/DashboardOverview";
 
 interface Submission {
   id: string;
@@ -108,12 +109,17 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-4xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-5xl">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="bootcamps">Bootcamps</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <DashboardOverview />
+          </TabsContent>
 
           <TabsContent value="submissions" className="space-y-4">
             <Card>
