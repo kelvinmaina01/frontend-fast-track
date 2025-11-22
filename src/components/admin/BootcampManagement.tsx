@@ -10,6 +10,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Edit, Trash2, Plus, Eye } from "lucide-react";
 import BootcampPreview from "./BootcampPreview";
+import { z } from "zod";
+
+const bootcampSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(500, "Description must be less than 500 characters"),
+  slug: z.string().trim().regex(/^[a-z0-9-]+$/, "Slug must only contain lowercase letters, numbers, and hyphens").min(1, "Slug is required").max(50),
+  icon: z.string().trim().max(50).optional(),
+  status: z.enum(["active", "coming_soon", "archived"])
+});
 
 interface Bootcamp {
   id: string;
@@ -56,6 +65,13 @@ export default function BootcampManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate input
+    const validation = bootcampSchema.safeParse(formData);
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     if (editingBootcamp) {
       const { error } = await supabase
         .from("bootcamps")

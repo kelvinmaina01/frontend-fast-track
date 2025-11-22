@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { z } from "zod";
 import { Plus } from "lucide-react";
 import {
   DndContext,
@@ -25,6 +26,22 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import SortableLessonRow from "./SortableLessonRow";
+
+const lessonSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200),
+  description: z.string().trim().min(1, "Description is required").max(500),
+  video_url: z.string().trim().url("Must be a valid URL"),
+  task: z.string().trim().min(1, "Task is required").max(2000),
+  resources: z.string().trim().refine((val) => {
+    if (!val) return true; // empty is okay
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed);
+    } catch {
+      return false;
+    }
+  }, "Resources must be valid JSON array")
+});
 
 interface Bootcamp {
   id: string;
@@ -146,11 +163,21 @@ export default function LessonManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate input
+    const validation = lessonSchema.safeParse(formData);
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     const lessonData = {
-      ...formData,
       bootcamp_id: selectedBootcamp,
-      resources: JSON.parse(formData.resources || "[]"),
-      order_index: Number(formData.order_index),
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      video_url: formData.video_url.trim(),
+      task: formData.task.trim(),
+      order_index: parseInt(formData.order_index.toString()),
+      resources: formData.resources ? JSON.parse(formData.resources) : [],
     };
 
     if (editingLesson) {
