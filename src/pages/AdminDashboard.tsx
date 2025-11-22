@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,11 @@ interface Submission {
 export default function AdminDashboard() {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(true);
+  
+  const defaultTab = searchParams.get("tab") || "submissions";
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -104,7 +107,7 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        <Tabs defaultValue="submissions" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 max-w-4xl">
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="bootcamps">Bootcamps</TabsTrigger>
