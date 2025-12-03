@@ -2,23 +2,25 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, GripVertical } from "lucide-react";
+import { Edit, Trash2, GripVertical, Archive, ArchiveRestore } from "lucide-react";
 
 interface Lesson {
   id: string;
   title: string;
   order_index: number;
+  is_archived?: boolean;
 }
 
 interface SortableLessonRowProps {
   lesson: Lesson;
   onEdit: (lesson: Lesson) => void;
   onDelete: (id: string) => void;
+  onToggleArchive: (lesson: Lesson) => void;
   isSelected: boolean;
   onToggleSelect: (id: string) => void;
 }
 
-export default function SortableLessonRow({ lesson, onEdit, onDelete, isSelected, onToggleSelect }: SortableLessonRowProps) {
+export default function SortableLessonRow({ lesson, onEdit, onDelete, onToggleArchive, isSelected, onToggleSelect }: SortableLessonRowProps) {
   const {
     attributes,
     listeners,
@@ -54,7 +56,12 @@ export default function SortableLessonRow({ lesson, onEdit, onDelete, isSelected
         </button>
       </TableCell>
       <TableCell>{lesson.order_index + 1}</TableCell>
-      <TableCell className="font-medium">{lesson.title}</TableCell>
+      <TableCell className="font-medium">
+        <span className={lesson.is_archived ? "text-muted-foreground" : ""}>
+          {lesson.title}
+          {lesson.is_archived && <span className="ml-2 text-xs bg-muted px-2 py-0.5 rounded">Archived</span>}
+        </span>
+      </TableCell>
       <TableCell>
         <div className="flex gap-2">
           <Button
@@ -63,6 +70,18 @@ export default function SortableLessonRow({ lesson, onEdit, onDelete, isSelected
             onClick={() => onEdit(lesson)}
           >
             <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleArchive(lesson)}
+            title={lesson.is_archived ? "Restore" : "Archive"}
+          >
+            {lesson.is_archived ? (
+              <ArchiveRestore className="h-4 w-4" />
+            ) : (
+              <Archive className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="destructive"

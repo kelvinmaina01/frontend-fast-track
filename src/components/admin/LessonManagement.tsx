@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, Archive, ArchiveRestore } from "lucide-react";
 import { z } from "zod";
 import {
   DndContext,
@@ -57,6 +57,7 @@ interface Lesson {
   task: string;
   order_index: number;
   resources: any;
+  is_archived: boolean;
 }
 
 export default function LessonManagement() {
@@ -313,6 +314,38 @@ export default function LessonManagement() {
     }
   };
 
+  const handleToggleArchive = async (lesson: Lesson) => {
+    const newArchivedStatus = !lesson.is_archived;
+    const { error } = await supabase
+      .from("lessons")
+      .update({ is_archived: newArchivedStatus })
+      .eq("id", lesson.id);
+
+    if (error) {
+      toast.error("Failed to update lesson");
+    } else {
+      toast.success(newArchivedStatus ? "Lesson archived" : "Lesson restored");
+      fetchLessons(selectedBootcamp);
+    }
+  };
+
+  const handleBulkArchive = async (archive: boolean) => {
+    if (selectedLessons.size === 0) return;
+
+    const updatePromises = Array.from(selectedLessons).map(id =>
+      supabase.from("lessons").update({ is_archived: archive }).eq("id", id)
+    );
+
+    try {
+      await Promise.all(updatePromises);
+      toast.success(`${selectedLessons.size} lesson(s) ${archive ? "archived" : "restored"} successfully`);
+      setSelectedLessons(new Set());
+      fetchLessons(selectedBootcamp);
+    } catch (error) {
+      toast.error("Failed to update lessons");
+    }
+  };
+
   const LessonForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -409,6 +442,22 @@ export default function LessonManagement() {
           <div className="flex gap-2">
             {selectedLessons.size > 0 && (
               <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleBulkArchive(true)}
+                >
+                  <Archive className="mr-1 h-4 w-4" />
+                  Archive ({selectedLessons.size})
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleBulkArchive(false)}
+                >
+                  <ArchiveRestore className="mr-1 h-4 w-4" />
+                  Restore ({selectedLessons.size})
+                </Button>
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -510,6 +559,7 @@ export default function LessonManagement() {
                           lesson={lesson}
                           onEdit={handleEdit}
                           onDelete={handleDelete}
+                          onToggleArchive={handleToggleArchive}
                           isSelected={selectedLessons.has(lesson.id)}
                           onToggleSelect={toggleLessonSelection}
                         />

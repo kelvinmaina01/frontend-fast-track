@@ -21,6 +21,7 @@ export type Database = {
           description: string
           icon: string | null
           id: string
+          is_archived: boolean
           slug: string
           status: string | null
           title: string
@@ -32,6 +33,7 @@ export type Database = {
           description: string
           icon?: string | null
           id?: string
+          is_archived?: boolean
           slug: string
           status?: string | null
           title: string
@@ -43,6 +45,7 @@ export type Database = {
           description?: string
           icon?: string | null
           id?: string
+          is_archived?: boolean
           slug?: string
           status?: string | null
           title?: string
@@ -56,6 +59,7 @@ export type Database = {
           created_at: string | null
           description: string
           id: string
+          is_archived: boolean
           order_index: number
           resources: Json | null
           task: string
@@ -68,6 +72,7 @@ export type Database = {
           created_at?: string | null
           description: string
           id?: string
+          is_archived?: boolean
           order_index: number
           resources?: Json | null
           task: string
@@ -80,6 +85,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           id?: string
+          is_archived?: boolean
           order_index?: number
           resources?: Json | null
           task?: string
