@@ -3,6 +3,7 @@ import { BookOpen, Home, MessageSquare, Library, LogIn, Shield, Settings, Gradua
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "./ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,8 +36,8 @@ export default function Navigation() {
             })}
             <div className="ml-2 pl-2 border-l flex gap-2">
               {user ? (
-                isAdmin && (
-                  <>
+                <>
+                  {isAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -73,8 +74,11 @@ export default function Navigation() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </>
-                )
+                  )}
+                  <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
