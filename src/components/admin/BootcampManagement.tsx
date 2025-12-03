@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Edit, Trash2, Plus, Eye } from "lucide-react";
+import { Edit, Trash2, Plus, Eye, Archive, ArchiveRestore } from "lucide-react";
 import BootcampPreview from "./BootcampPreview";
 import { z } from "zod";
 
@@ -27,6 +27,7 @@ interface Bootcamp {
   slug: string;
   icon: string | null;
   status: string;
+  is_archived: boolean;
 }
 
 export default function BootcampManagement() {
@@ -131,6 +132,21 @@ export default function BootcampManagement() {
       toast.error("Failed to delete bootcamp");
     } else {
       toast.success("Bootcamp deleted successfully");
+      fetchBootcamps();
+    }
+  };
+
+  const handleToggleArchive = async (bootcamp: Bootcamp) => {
+    const newArchivedStatus = !bootcamp.is_archived;
+    const { error } = await supabase
+      .from("bootcamps")
+      .update({ is_archived: newArchivedStatus })
+      .eq("id", bootcamp.id);
+
+    if (error) {
+      toast.error("Failed to update bootcamp");
+    } else {
+      toast.success(newArchivedStatus ? "Bootcamp archived" : "Bootcamp restored");
       fetchBootcamps();
     }
   };
@@ -265,6 +281,7 @@ export default function BootcampManagement() {
                     <TableHead>Title</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Archived</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -287,6 +304,17 @@ export default function BootcampManagement() {
                       </span>
                     </TableCell>
                     <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          bootcamp.is_archived
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {bootcamp.is_archived ? "Archived" : "Active"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex gap-2 justify-end">
                         <Button
                           variant="outline"
@@ -303,6 +331,18 @@ export default function BootcampManagement() {
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleArchive(bootcamp)}
+                          title={bootcamp.is_archived ? "Restore" : "Archive"}
+                        >
+                          {bootcamp.is_archived ? (
+                            <ArchiveRestore className="h-4 w-4" />
+                          ) : (
+                            <Archive className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button
                           variant="destructive"
