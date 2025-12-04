@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
-import { useEffect } from "react";
+import Footer from "@/components/layout/Footer";
 import { z } from "zod";
+import { BookOpen, Mail, Lock, ArrowRight, Sparkles, Shield } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").max(255),
@@ -33,7 +34,6 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate input
     const validation = authSchema.safeParse({ email: email.trim(), password });
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
@@ -50,7 +50,7 @@ export default function Auth() {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success(isLogin ? "Signed in successfully!" : "Account created successfully!");
+        toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
         navigate("/");
       }
     } catch (error: any) {
@@ -61,83 +61,117 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <div className="container mx-auto px-4 py-20">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome Back</CardTitle>
-              <CardDescription>Sign in to access the admin dashboard</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={isLogin ? "login" : "signup"} onValueChange={(v) => setIsLogin(v === "login")}>
+      
+      <div className="flex-1 flex items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-primary shadow-glow mb-6">
+              <BookOpen className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <h1 className="font-display text-3xl font-bold mb-2">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isLogin 
+                ? "Sign in to access the admin dashboard" 
+                : "Join Tech Bootcamps Hub today"}
+            </p>
+          </div>
+
+          {/* Auth Card */}
+          <Card className="border-border/50 shadow-xl">
+            <CardHeader className="pb-4">
+              <Tabs value={isLogin ? "login" : "signup"} onValueChange={(v) => setIsLogin(v === "login")} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  <TabsTrigger value="login" className="gap-2">
+                    <Lock className="h-4 w-4" />
+                    Login
+                  </TabsTrigger>
+                  <TabsTrigger value="signup" className="gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Sign Up
+                  </TabsTrigger>
                 </TabsList>
-                <TabsContent value="login">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </TabsContent>
-                <TabsContent value="signup">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating account..." : "Sign Up"}
-                    </Button>
-                  </form>
-                </TabsContent>
               </Tabs>
+            </CardHeader>
+            
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full gap-2 h-11" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      {isLogin ? "Sign In" : "Create Account"}
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {/* Admin Note */}
+              <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-primary mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Admin Access</p>
+                    <p className="text-muted-foreground">
+                      This login is for bootcamp organizers and administrators only. 
+                      Students don't need an account to access lessons.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

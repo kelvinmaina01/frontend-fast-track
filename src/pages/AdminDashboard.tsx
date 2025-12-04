@@ -2,13 +2,28 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ExternalLink, LogOut } from "lucide-react";
+import { 
+  ExternalLink, 
+  LogOut, 
+  LayoutDashboard, 
+  FileText, 
+  GraduationCap, 
+  BookOpen, 
+  Settings,
+  Users,
+  TrendingUp,
+  Calendar,
+  Loader2,
+  Shield
+} from "lucide-react";
 import BootcampManagement from "@/components/admin/BootcampManagement";
 import LessonManagement from "@/components/admin/LessonManagement";
 import DashboardOverview from "@/components/admin/DashboardOverview";
@@ -33,7 +48,7 @@ export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(true);
   
-  const defaultTab = searchParams.get("tab") || "submissions";
+  const defaultTab = searchParams.get("tab") || "overview";
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -80,10 +95,10 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <p>Loading...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -93,77 +108,136 @@ export default function AdminDashboard() {
     return null;
   }
 
+  const tabItems = [
+    { value: "overview", label: "Overview", icon: LayoutDashboard },
+    { value: "submissions", label: "Submissions", icon: FileText },
+    { value: "bootcamps", label: "Bootcamps", icon: GraduationCap },
+    { value: "lessons", label: "Lessons", icon: BookOpen },
+    { value: "settings", label: "Settings", icon: Settings },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <div className="container mx-auto px-4 py-20">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage bootcamps and view submissions</p>
+      
+      <div className="flex-1 container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-primary shadow-glow">
+              <Shield className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl font-bold">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage your bootcamps and track submissions</p>
+            </div>
           </div>
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="mr-2 h-4 w-4" />
+          <Button onClick={handleLogout} variant="outline" className="gap-2">
+            <LogOut className="h-4 w-4" />
             Logout
           </Button>
         </div>
 
+        {/* Main Content */}
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-5xl">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="submissions">Submissions</TabsTrigger>
-            <TabsTrigger value="bootcamps">Bootcamps</TabsTrigger>
-            <TabsTrigger value="lessons">Lessons</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="bg-card border border-border p-1 h-auto flex-wrap">
+            {tabItems.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <TabsTrigger 
+                  key={tab.value} 
+                  value={tab.value}
+                  className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
             <DashboardOverview />
           </TabsContent>
 
-          <TabsContent value="submissions" className="space-y-4">
+          {/* Submissions Tab */}
+          <TabsContent value="submissions" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Student Submissions</CardTitle>
-                <CardDescription>View all task submissions from students</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Student Submissions
+                    </CardTitle>
+                    <CardDescription>View and manage all task submissions from students</CardDescription>
+                  </div>
+                  <Badge variant="secondary" className="text-lg px-4 py-1">
+                    {submissions.length} Total
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 {submissionsLoading ? (
-                  <p>Loading submissions...</p>
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
                 ) : submissions.length === 0 ? (
-                  <p className="text-muted-foreground">No submissions yet.</p>
+                  <div className="text-center py-12">
+                    <div className="p-4 rounded-full bg-muted inline-flex mb-4">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No submissions yet</h3>
+                    <p className="text-muted-foreground">Student submissions will appear here</p>
+                  </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto rounded-lg border border-border">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Student Name</TableHead>
-                          <TableHead>Bootcamp</TableHead>
-                          <TableHead>Lesson</TableHead>
-                          <TableHead>GitHub Link</TableHead>
-                          <TableHead>Submitted</TableHead>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-semibold">Student</TableHead>
+                          <TableHead className="font-semibold">Bootcamp</TableHead>
+                          <TableHead className="font-semibold">Lesson</TableHead>
+                          <TableHead className="font-semibold">Repository</TableHead>
+                          <TableHead className="font-semibold">Submitted</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {submissions.map((submission) => (
-                          <TableRow key={submission.id}>
+                          <TableRow key={submission.id} className="hover:bg-muted/30">
                             <TableCell>
-                              {submission.student_name || "Anonymous"}
+                              <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-primary" />
+                                </div>
+                                <span className="font-medium">
+                                  {submission.student_name || "Anonymous"}
+                                </span>
+                              </div>
                             </TableCell>
-                            <TableCell>{submission.lessons.bootcamps.title}</TableCell>
-                            <TableCell>{submission.lessons.title}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{submission.lessons.bootcamps.title}</Badge>
+                            </TableCell>
+                            <TableCell className="max-w-[200px] truncate">
+                              {submission.lessons.title}
+                            </TableCell>
                             <TableCell>
                               <a
                                 href={submission.github_link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-primary hover:underline"
+                                className="inline-flex items-center gap-1.5 text-primary hover:underline font-medium"
                               >
-                                View Repo <ExternalLink className="h-3 w-3" />
+                                View Code
+                                <ExternalLink className="h-3.5 w-3.5" />
                               </a>
                             </TableCell>
                             <TableCell>
-                              {new Date(submission.submitted_at).toLocaleDateString()}
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(submission.submitted_at).toLocaleDateString()}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -175,27 +249,56 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="bootcamps" className="space-y-4">
+          {/* Bootcamps Tab */}
+          <TabsContent value="bootcamps" className="space-y-6">
             <BootcampManagement />
           </TabsContent>
 
-          <TabsContent value="lessons" className="space-y-4">
+          {/* Lessons Tab */}
+          <TabsContent value="lessons" className="space-y-6">
             <LessonManagement />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-4">
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Admin Settings</CardTitle>
-                <CardDescription>Manage your admin preferences</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-primary" />
+                  Admin Settings
+                </CardTitle>
+                <CardDescription>Manage your account and preferences</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Settings coming soon...</p>
+                <div className="space-y-6">
+                  <div className="p-6 rounded-xl bg-muted/50 border border-border">
+                    <h3 className="font-semibold mb-2">Account Information</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Logged in as: <span className="text-foreground font-medium">{user.email}</span>
+                    </p>
+                    <Badge variant="secondary" className="gap-1">
+                      <Shield className="h-3 w-3" />
+                      Administrator
+                    </Badge>
+                  </div>
+                  
+                  <div className="p-6 rounded-xl bg-warning/10 border border-warning/20">
+                    <h3 className="font-semibold mb-2 text-warning">Danger Zone</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Irreversible actions that affect your account
+                    </p>
+                    <Button variant="destructive" onClick={handleLogout}>
+                      Sign Out of Account
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
+
+      <Footer />
     </div>
   );
 }
